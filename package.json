@@ -1,0 +1,30 @@
+{
+  "name": "sleepbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CupHolder14/sleep-bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CupHolder14/sleep-bot/issues"
+  },
+  "homepage": "https://github.com/CupHolder14/sleep-bot#readme",
+  "dependencies": {
+    "discord.js": "^13.6.0",
+    "dotenv": "^14.3.2",
+    "express": "^4.17.2",
+    "firebase": "^9.6.5",
+    "firebase-admin": "^10.0.2",
+    "moment": "^2.29.1"
+  }
+}
