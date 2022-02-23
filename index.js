@@ -1,5 +1,3 @@
-/* Consts, Requirements, Imports */
-
 // For heroku port connectivity
 require('dotenv').config()
 require('./keepAlive')
@@ -22,7 +20,7 @@ const firebaseConfig = {
   measurementId: "G-S9SYQF1K8R"
 };
 const { getAuth, onAuthStateChanged } = require('firebase/auth');
-const { Firestore, getFirestore, doc, getDocs, setDoc, deleteDoc, updateDoc, query, collection, getDoc} = require('firebase/firestore');
+const { getFirestore, doc, getDocs, setDoc, deleteDoc, updateDoc, query, collection, getDoc} = require('firebase/firestore');
 const { initializeApp } = require('firebase/app');
 const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
@@ -42,7 +40,6 @@ app.listen(PORT, () => {
 });
 
 /* Event Handlers */
-
 // Discord
 client.on('ready', () =>{
     console.log('Bot is ready')
@@ -69,8 +66,12 @@ client.on('messageCreate', (message) =>{
             });
         }
         else if(message.content.startsWith('remove', 7)){
-            removefromDB("BedTimes", message.member.id);
-            message.reply("Bedtime removed");
+            const opStatus = removeFromDB("BedTimes", message.member.id);
+            if(opStatus){
+                message.reply("Bedtime removed");
+                return;
+            }
+            message.reply("Error, couldn't remove bedtime, please try again later");
         }
     }
 })
@@ -87,7 +88,7 @@ onAuthStateChanged(auth, user => {
     }
 })
 
-// Repeating Time Check
+// Repeating sleep check
 setInterval(function() {
     const date = moment().utc();
     const dateEST = date.subtract(5, "hours");
@@ -101,38 +102,18 @@ setInterval(function() {
             const data = doc.data();
             if(data.time.split(' ').join('') == dateNow){
                 fetchMemberStatus(data.guildID, doc.id).then(status => {
+                    let msg = "";
                     if(status == "online"){
-                        data.streak = 'streak' in data ? Number(data.streak) -1 : -1;
-                        let msg = "";
-                        if(data.streak > 0){
-                            msg = goToBedMessages[0];
-                        }
-                        else if(Math.abs(data.streak) >= goToBedMessages.length){
-                            msg = goToBedMessages[goToBedMessages.length - 1];
-                        }
-                        else{
-                            msg = goToBedMessages[Math.abs(data.streak)]
-                        }
-                        client.channels.fetch(data.chatID).then(channel => {
-                            channel.send("Hey <@" + doc.id + "> " + msg);
-                        });
+                        data.streak = 'streak' in data ? Number(data.streak) -1 : -1; // If streak exists in data subtract 1 otherwise set to -1
+                        msg = goToBedMessages[Math.floor(Math.random() * goToBedMessages.length)];
                     }
                     else{
                         data.streak = 'streak' in data ? Number(data.streak) + 1 : 1;
-                        let msg = "";
-                        if(data.streak <= 0){
-                            msg = goodNightMessages[0];
-                        }
-                        else if(data.streak > goodNightMessages.length){
-                            msg = goodNightMessages[Math.floor(Math.random() * array.length)];
-                        }
-                        else{
-                            msg = goodNightMessages[data.streak];
-                        }
-                        client.channels.fetch(data.chatID).then(channel => {
-                            channel.send("Hey <@" + doc.id + "> " + msg);
-                        });
+                        msg = goodNightMessages[Math.floor(Math.random() * goodNightMessages.length)];
                     }
+                    client.channels.fetch(data.chatID).then(channel => {
+                        channel.send("Hey <@" + doc.id + "> " + msg + " 🔥(" + data.streak.toString() + ")");
+                    });
                     writeToDB("BedTimes", doc.id, data);
                 })
             }
@@ -160,21 +141,14 @@ async function writeToDB(collectionName, uniqueID, data){
     }
 }
 
-async function updateDocument(collectionName, uniqueID, dataToAdd){
-    try{
-        await updateDoc(doc(db, collectionName, uniqueID, dataToAdd));
-    }
-    catch(e){
-        console.error("Error!: ", e);
-    }
-}
-
-async function removefromDB(collectionName, uniqueID){
+async function removeFromDB(collectionName, uniqueID){
     try{
         await deleteDoc(doc(db, collectionName, uniqueID));
+        return true;
     }
     catch(e){
         console.error("Error! :", e);
+        return false;
     }
 }
 
