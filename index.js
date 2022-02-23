@@ -112,7 +112,7 @@ setInterval(function() {
                         msg = goodNightMessages[Math.floor(Math.random() * goodNightMessages.length)];
                     }
                     client.channels.fetch(data.chatID).then(channel => {
-                        channel.send("Hey <@" + doc.id + "> " + msg + " 🔥(" + data.streak.toString() + ")");
+                        channel.send("Hey <@" + doc.id + ">, " + msg + " (🔥" + data.streak.toString() + ");
                     });
                     writeToDB("BedTimes", doc.id, data);
                 })
